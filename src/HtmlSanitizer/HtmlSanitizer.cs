@@ -147,6 +147,11 @@ namespace Ganss.XSS
         public bool AllowDataAttributes { get; set; }
 
         /// <summary>
+        /// Allow all HTML comments;
+        /// </summary>
+        public bool AllowComments { get; set; }
+
+        /// <summary>
         /// The default allowed HTML attributes.
         /// </summary>
         public static readonly ISet<string> DefaultAllowedAttributes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
@@ -457,7 +462,10 @@ namespace Ganss.XSS
 
             var nodes = GetAllNodes(context).ToList();
 
-            RemoveComments(nodes);
+            if (!AllowComments)
+            {
+                RemoveComments(nodes);
+            }            
 
             DoPostProcess(dom, nodes);
         }
