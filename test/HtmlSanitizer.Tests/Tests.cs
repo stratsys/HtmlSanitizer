@@ -23,6 +23,34 @@ namespace Ganss.XSS.Tests
     /// </summary>
     public class HtmlSanitizerTests
     {
+        [Fact]
+        public void PlainTextWithSpecialCharacters_ShouldKeepAsIs()
+        {
+            var sanitizer = new HtmlSanitizer();
+
+            var text = "Text with &, <, >, ";
+            var sanitized = sanitizer.SanitizeText(text);
+            Assert.Equal(text, sanitized);
+        }
+
+        [Fact]
+        public void PlainTextWithEncodedAlert_ShouldStripIt()
+        {
+            var sanitizer = new HtmlSanitizer();
+            var text = "&lt;script&gt;alert('xss')&lt;/script&gt;Some text";
+            var sanitized = sanitizer.SanitizeText(text);
+            Assert.Equal("Some text", sanitized);
+        }
+
+        [Fact]
+        public void PlainTextWithHtml_ShouldStripItButKeepContent()
+        {
+            var sanitizer = new HtmlSanitizer();
+            var text = "&lt;p&gt;Text&lt;/p&gt;";
+            var sanitized = sanitizer.SanitizeText(text);
+            Assert.Equal("Text", sanitized);
+        }
+
         /// <summary>
         /// A test for Xss locator
         /// </summary>

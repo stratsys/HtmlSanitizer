@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace Ganss.XSS
@@ -363,7 +364,25 @@ namespace Ganss.XSS
 
             DoSanitize(dom, dom.Body, baseUrl, outputFormatter);
 
-            var output = dom.Body.ChildNodes.ToHtml(outputFormatter ?? HtmlMarkupFormatter.Instance);
+            var output = dom.Body.InnerHtml;
+
+            return output;
+        }
+
+        /// <summary>
+        /// Sanitizes the specified text from Html
+        /// </summary>
+        /// <param name="text">The text to sanitize</param>
+        /// <returns>The sanitized text</returns>
+        public string SanitizeText(string text)
+        {
+            var parser = CreateParser();
+            var decodeText = WebUtility.HtmlDecode(text);
+            var dom = parser.Parse("<body>" + decodeText + "</body>");
+
+            DoSanitize(dom, dom.Body, string.Empty);
+
+            var output = dom.Body.TextContent;
 
             return output;
         }
