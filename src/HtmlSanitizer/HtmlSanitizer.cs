@@ -1,3 +1,19 @@
+using AngleSharp;
+using AngleSharp.Css;
+using AngleSharp.Css.Dom;
+using AngleSharp.Css.Parser;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+
 namespace Ganss.Xss
 {
     /// <summary>
@@ -373,11 +389,12 @@ namespace Ganss.Xss
         {
             var parser = HtmlParserFactory();
             var decodeText = WebUtility.HtmlDecode(text);
-            var dom = parser.Parse("<body>" + decodeText + "</body>");
+            var dom = parser.ParseDocument("<body>" + decodeText + "</body>");
 
-            DoSanitize(dom, dom.Body, string.Empty);
+            if (dom.Body != null)
+                DoSanitize(dom, dom.Body, string.Empty);
 
-            var output = dom.Body.TextContent;
+            var output = dom.Body?.TextContent ?? string.Empty;
 
             return output;
         }
