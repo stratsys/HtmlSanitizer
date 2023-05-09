@@ -1,3 +1,15 @@
+using AngleSharp;
+using AngleSharp.Css;
+using AngleSharp.Css.Dom;
+using AngleSharp.Css.Parser;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using Xunit;
+
 // Tests based on tests from http://roadkill.codeplex.com/
 
 // To create unit tests in this class reference is taken from
