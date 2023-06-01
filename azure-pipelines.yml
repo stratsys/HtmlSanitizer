@@ -1,0 +1,29 @@
+trigger: none
+
+pr: none
+
+pool: Stratsys-buildagents
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    projects: 'HtmlSanitizer\HtmlSanitizer.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: Package
+  inputs:
+    command: 'pack'
+    packagesToPack: 'HtmlSanitizer\HtmlSanitizer.csproj'
+    versioningScheme: off
+
+- task: NuGetCommand@2
+  displayName: 'NuGet push'
+  inputs:
+    command: push
+    nuGetFeedType: external
+    publishFeedCredentials: MyGet
