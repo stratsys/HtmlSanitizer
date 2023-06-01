@@ -11,14 +11,14 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
-    projects: 'HtmlSanitizer\HtmlSanitizer.csproj'
+    projects: 'src\HtmlSanitizer\HtmlSanitizer.csproj'
     arguments: '--configuration $(BuildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: Package
   inputs:
     command: 'pack'
-    packagesToPack: 'HtmlSanitizer\HtmlSanitizer.csproj'
+    packagesToPack: 'src\HtmlSanitizer\HtmlSanitizer.csproj'
     versioningScheme: off
 
 - task: NuGetCommand@2
