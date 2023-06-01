@@ -18,7 +18,7 @@
     <AssemblyOriginatorKeyFile>HtmlSanitizer.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>Stratsys.HtmlSanitizer.Fork</PackageId>
+    <PackageId>Stratsys.HtmlSanitizer</PackageId>
     <PackageTags>xss;anti;antixss;html;security</PackageTags>
     <PackageProjectUrl>https://github.com/stratsys/HtmlSanitizer</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
