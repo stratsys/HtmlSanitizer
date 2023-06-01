@@ -1,7 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Cleans HTML from constructs that can be used for cross-site scripting (XSS)</Description>
+    <Description>
+      A Stratsys fork of HtmlSanitizer by Michael Ganss.
+      Cleans HTML from constructs that can be used for cross-site scripting (XSS)
+    </Description>
     <Copyright>Copyright 2013-$([System.DateTime]::Now.Year) Michael Ganss</Copyright>
     <AssemblyTitle>HtmlSanitizer</AssemblyTitle>
     <AppVeyor_Build_Version Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">8.0.645</AppVeyor_Build_Version>
@@ -15,12 +18,12 @@
     <AssemblyOriginatorKeyFile>HtmlSanitizer.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>HtmlSanitizer</PackageId>
+    <PackageId>Stratsys.HtmlSanitizer.Fork</PackageId>
     <PackageTags>xss;anti;antixss;html;security</PackageTags>
-    <PackageProjectUrl>https://github.com/mganss/HtmlSanitizer</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/stratsys/HtmlSanitizer</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>git://github.com/mganss/HtmlSanitizer</RepositoryUrl>
+    <RepositoryUrl>git://github.com/stratsys/HtmlSanitizer</RepositoryUrl>
     <RootNamespace>Ganss.Xss</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\HtmlSanitizer.xml</DocumentationFile>
