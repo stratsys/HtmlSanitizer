@@ -7,8 +7,8 @@
     </Description>
     <Copyright>Copyright 2013-$([System.DateTime]::Now.Year) Michael Ganss</Copyright>
     <AssemblyTitle>HtmlSanitizer</AssemblyTitle>
-    <AppVeyor_Build_Version Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">8.0.645</AppVeyor_Build_Version>
-    <AssemblyVersion>8.0.645.0</AssemblyVersion>
+    <AppVeyor_Build_Version Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">8.1.0</AppVeyor_Build_Version>
+    <AssemblyVersion>8.1.0.0</AssemblyVersion>
     <InformationalVersion>$(AppVeyor_Build_Version)</InformationalVersion>
     <FileVersion>$(AppVeyor_Build_Version).0</FileVersion>
     <PackageVersion>$(AppVeyor_Build_Version)</PackageVersion>
@@ -43,8 +43,8 @@
   <ItemGroup>
     <PackageReference Include="AngleSharp.Css" Version="0.17.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46'">
