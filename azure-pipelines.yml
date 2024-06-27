@@ -5,7 +5,9 @@ pr: none
 pool: Stratsys-buildagents
 
 variables:
-  buildConfiguration: 'Release'
+- group: "Azure Key Vault"
+- name: buildConfiguration
+  value: 'Release'
 
 steps:
 - task: DotNetCoreCLI@2
@@ -21,9 +23,5 @@ steps:
     packagesToPack: 'src\HtmlSanitizer\HtmlSanitizer.csproj'
     versioningScheme: off
 
-- task: NuGetCommand@2
-  displayName: 'NuGet push'
-  inputs:
-    command: push
-    nuGetFeedType: external
-    publishFeedCredentials: MyGet
+- script: dotnet nuget push $(Build.ArtifactStagingDirectory)\**\*.nupkg --api-key $(GH-PACKAGES-TOKEN-WRITE) --source "https://nuget.pkg.github.com/stratsys/index.json"
+  displayName: Push

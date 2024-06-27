@@ -53,6 +53,8 @@ namespace Ganss.Xss
     /// </example>
     public class HtmlSanitizer : IHtmlSanitizer
     {
+        private const string StyleAttributeName = "style";
+
         // from http://genshi.edgewall.org/
         private static readonly Regex CssUnicodeEscapes = new(@"\\([0-9a-fA-F]{1,6})\s?|\\([^\r\n\f0-9a-fA-F'""{};:()#*])", RegexOptions.Compiled);
         private static readonly Regex CssComments = new(@"/\*.*?\*/", RegexOptions.Compiled);
@@ -99,6 +101,16 @@ namespace Ganss.Xss
             AllowedCssProperties = new HashSet<string>(options.AllowedCssProperties, StringComparer.OrdinalIgnoreCase);
             AllowedAtRules = new HashSet<CssRuleType>(options.AllowedAtRules);
         }
+
+        /// <summary>
+        /// Gets or sets the default <see cref="Action{IComment}"/> method that encodes comments.
+        /// </summary>
+        public Action<IComment> EncodeComment { get; set; } = DefaultEncodeComment;
+
+        /// <summary>
+        /// Gets or sets the default <see cref="Action{IElement}"/> method that encodes literal text content.
+        /// </summary>
+        public Action<IElement> EncodeLiteralTextElementContent { get; set; } = DefaultEncodeLiteralTextElementContent;
 
         /// <summary>
         /// Gets or sets the default value indicating whether to keep child nodes of elements that are removed. Default is false.
@@ -478,6 +490,8 @@ namespace Ganss.Xss
         {
             foreach (var comment in GetAllNodes(context).OfType<IComment>().ToList())
             {
+                EncodeComment(comment);
+
                 var e = new RemovingCommentEventArgs(comment);
                 OnRemovingComment(e);
 
@@ -486,12 +500,37 @@ namespace Ganss.Xss
             }
         }
 
+        private static void DefaultEncodeComment(IComment comment)
+        {
+            var escapedText = comment.TextContent.Replace("<", "&lt;").Replace(">", "&gt;");
+            if (escapedText != comment.TextContent)
+                comment.TextContent = escapedText;
+        }
+
+        private static void DefaultEncodeLiteralTextElementContent(IElement tag)
+        {
+            var escapedHtml = tag.InnerHtml.Replace("<", "&lt;").Replace(">", "&gt;");
+            if (escapedHtml != tag.InnerHtml)
+                tag.InnerHtml = escapedHtml;
+            if (tag.InnerHtml != escapedHtml) // setting InnerHtml does not work for noscript
+                tag.SetInnerText(escapedHtml);
+        }
+
         private void DoSanitize(IHtmlDocument dom, IParentNode context, string baseUrl = "")
         {
             // remove disallowed tags
             foreach (var tag in context.QuerySelectorAll("*").Where(t => !IsAllowedTag(t)).ToList())
             {
                 RemoveTag(tag, RemoveReason.NotAllowedTag);
+            }
+
+            // always encode text in raw data content
+            foreach (var tag in context.QuerySelectorAll("*")
+                .Where(t => t is not IHtmlStyleElement
+                    && t.Flags.HasFlag(NodeFlags.LiteralText)
+                    && !string.IsNullOrWhiteSpace(t.InnerHtml)))
+            {
+                EncodeLiteralTextElementContent(tag);
             }
 
             SanitizeStyleSheets(dom, baseUrl);
@@ -517,7 +556,7 @@ namespace Ganss.Xss
                 }
 
                 // sanitize the style attribute
-                var oldStyleEmpty = string.IsNullOrEmpty(tag.GetAttribute("style"));
+                var oldStyleEmpty = string.IsNullOrEmpty(tag.GetAttribute(StyleAttributeName));
                 SanitizeStyle(tag, baseUrl);
 
                 // sanitize the value of the attributes
@@ -541,7 +580,7 @@ namespace Ganss.Xss
                             if (!tag.ClassList.Any())
                                 RemoveAttribute(tag, attribute, RemoveReason.ClassAttributeEmpty);
                         }
-                        else if (!oldStyleEmpty && attribute.Name == "style" && string.IsNullOrEmpty(attribute.Value))
+                        else if (!oldStyleEmpty && attribute.Name == StyleAttributeName && string.IsNullOrEmpty(attribute.Value))
                         {
                             RemoveAttribute(tag, attribute, RemoveReason.StyleAttributeEmpty);
                         }
@@ -562,8 +601,9 @@ namespace Ganss.Xss
             foreach (var styleSheet in dom.StyleSheets.OfType<ICssStyleSheet>())
             {
                 var styleTag = styleSheet.OwnerNode;
+                var i = 0;
 
-                for (int i = 0; i < styleSheet.Rules.Length;)
+                while (i < styleSheet.Rules.Length)
                 {
                     var rule = styleSheet.Rules[i];
                     if (!SanitizeStyleRule(rule, styleTag, baseUrl) && RemoveAtRule(styleTag, rule))
@@ -571,7 +611,7 @@ namespace Ganss.Xss
                     else i++;
                 }
 
-                styleTag.InnerHtml = styleSheet.ToCss(StyleFormatter).Replace("<", "\\3c");
+                styleTag.InnerHtml = styleSheet.ToCss(StyleFormatter).Replace("<", "\\3c ");
             }
         }
 
@@ -587,7 +627,9 @@ namespace Ganss.Xss
             {
                 if (rule is ICssGroupingRule groupingRule)
                 {
-                    for (int i = 0; i < groupingRule.Rules.Length;)
+                    var i = 0;
+
+                    while (i < groupingRule.Rules.Length)
                     {
                         var childRule = groupingRule.Rules[i];
                         if (!SanitizeStyleRule(childRule, styleTag, baseUrl) && RemoveAtRule(styleTag, childRule))
@@ -636,7 +678,7 @@ namespace Ganss.Xss
                         OnPostProcessNode(e);
                         if (e.ReplacementNodes.Any())
                         {
-                            ((IChildNode)node).Replace(e.ReplacementNodes.ToArray());
+                            ((IChildNode)node).Replace([.. e.ReplacementNodes]);
                         }
                     }
                 }
@@ -690,17 +732,17 @@ namespace Ganss.Xss
         {
             // filter out invalid CSS declarations
             // see https://github.com/AngleSharp/AngleSharp/issues/101
-            var attribute = element.GetAttribute("style");
+            var attribute = element.GetAttribute(StyleAttributeName);
             if (attribute == null)
                 return;
 
             if (element.GetStyle() == null)
             {
-                element.RemoveAttribute("style");
+                element.RemoveAttribute(StyleAttributeName);
                 return;
             }
 
-            element.SetAttribute("style", element.GetStyle().ToCss(StyleFormatter));
+            element.SetAttribute(StyleAttributeName, element.GetStyle().ToCss(StyleFormatter));
 
             var styles = element.GetStyle();
             if (styles == null || styles.Length == 0)
@@ -746,12 +788,12 @@ namespace Ganss.Xss
 
                         foreach (var url in urls)
                         {
-                            sb.Append(val, ix, url.Match.Index);
+                            sb.Append(val, ix, url.Match.Index - ix);
                             sb.Append("url(");
                             sb.Append(url.Match.Groups[1].Value);
                             sb.Append(url.Url);
                             sb.Append(url.Match.Groups[3].Value);
-                            ix = url.Match.Length;
+                            ix = url.Match.Index + url.Match.Length;
                         }
 
                         sb.Append(val, ix, val.Length - ix);
@@ -841,7 +883,12 @@ namespace Ganss.Xss
                 {
                     try
                     {
-                        return new Uri(baseUri, iri.Value).AbsoluteUri;
+                        var sanitizedUrl = new Uri(baseUri, iri.Value).AbsoluteUri;
+                        var ev = new FilterUrlEventArgs(element, url, sanitizedUrl);
+
+                        OnFilteringUrl(ev);
+
+                        return ev.SanitizedUrl;
                     }
                     catch (UriFormatException)
                     {
@@ -870,7 +917,7 @@ namespace Ganss.Xss
             if (!e.Cancel)
             {
                 if (KeepChildNodes && tag.HasChildNodes)
-                    tag.Replace(tag.ChildNodes.ToArray());
+                    tag.Replace([.. tag.ChildNodes]);
                 else
                     tag.Remove();
             }
