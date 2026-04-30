@@ -1,4 +1,4 @@
-version: 8.0.{build}
+version: 9.0.{build}
 skip_tags: true
 image: Visual Studio 2022
 environment:
@@ -9,6 +9,9 @@ environment:
   JAVA_HOME: C:\Program Files\Java\jdk19
 nuget:
   disable_publish_on_pr: true
+install:
+  - ps: Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+  - ps: .\dotnet-install.ps1 -Channel 10.0 -InstallDir "$env:ProgramFiles\dotnet"
 build_script:
   - dotnet restore
   - dotnet pack --include-symbols --include-source -c Release src\HtmlSanitizer
@@ -19,7 +22,7 @@ test_script:
           dotnet sonarscanner begin /k:"mganss_HtmlSanitizer" /v:$env:APPVEYOR_BUILD_VERSION /o:"mganss-github" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:sonar_token" /d:sonar.cs.opencover.reportsPaths="$($env:APPVEYOR_BUILD_FOLDER)\coverage.xml" /d:sonar.coverage.exclusions="**/Program.cs"
           dotnet build
       }
-  - dotnet test /p:CollectCoverage=true test\HtmlSanitizer.Tests\HtmlSanitizer.Tests.csproj -f net6.0
+  - dotnet test /p:CollectCoverage=true test\HtmlSanitizer.Tests\HtmlSanitizer.Tests.csproj -f net10.0
   - ps: cp coverage.*.xml ./coverage.xml
   - ps: |
       if (-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {

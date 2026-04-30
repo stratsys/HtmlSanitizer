@@ -10,6 +10,12 @@ variables:
   value: 'Release'
 
 steps:
+- task: UseDotNet@2
+  displayName: Use .NET 10 SDK
+  inputs:
+    packageType: 'sdk'
+    version: '10.0.x'
+
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
