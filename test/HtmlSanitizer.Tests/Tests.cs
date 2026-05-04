@@ -1448,20 +1448,7 @@ S
         // Assert
         string expected = "<a href=\"http://www.codeplex.com?url=&lt;!--[if gte IE 4]&gt;&lt;SCRIPT&gt;alert('XSS');&lt;/SCRIPT&gt;&lt;![endif]--&gt;\">XSS</a>";
 
-        try
-        {
-            Assert.Equal(expected, actual, ignoreCase: true);
-        }
-        catch (Exception)
-        {
-            // In .NET 3.5 there is a bug with URI, and so this test would otherwise fail on .NET 3.5 in Appveyor / NUnit:
-            // http://help.appveyor.com/discussions/problems/1625-nunit-not-picking-up-net-framework-version
-            // http://stackoverflow.com/questions/27019061/forcing-nunit-console-runner-to-use-clr-4-5
-            string expectedNet35 = @"<a href=""http://www.codeplex.com/?url=%3C!--%5Bif%20gte%20IE%204%5D%3E%3CSCRIPT%3Ealert('XSS');%3C/SCRIPT%3E%3C!%5Bendif%5D--%3E"">XSS</a>";
-
-
-            Assert.Equal(expectedNet35, actual, ignoreCase: true);
-        }
+        Assert.Equal(expected, actual, ignoreCase: true);
     }
 
     /// <summary>
